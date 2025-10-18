@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import '../models/hpp_calculator.dart';
 import '../models/hpp_template.dart';
 import '../services/storage_service.dart';
 import '../utils/app_utils.dart';
-import 'hpp_history_page.dart';
 import 'hpp_template_page.dart';
 import '../utils/thousands_separator_input_formatter_utils.dart';
 
@@ -183,12 +183,12 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
   //   );
   // }
 
-  void _lihatRiwayat() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HppHistoryPage()),
-    );
-  }
+  // void _lihatRiwayat() {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => const HppHistoryPage()),
+  //   );
+  // }
 
   void _lihatTemplate() {
     Navigator.push(
@@ -313,7 +313,7 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kalkulator HPP'),
+        title: const Text('Kalkulator HPP | Obizplan'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
@@ -691,6 +691,31 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
               }
               return null;
             },
+          ),
+          SizedBox(
+            height: 24,
+          ),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Dibuat dengan ❤️ oleh oemam.com",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(
+                  height: 4,
+                ),
+                OutlinedButton.icon(
+                  icon: Icon(Icons.open_in_new),
+                  label: Text("Kunjungi oemam.com"),
+                  onPressed: () => launchUrl(Uri.parse('https://oemam.com/')),
+                ),
+              ],
+            ),
           ),
         ],
       ),
