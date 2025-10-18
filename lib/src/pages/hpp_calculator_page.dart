@@ -1,50 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../models/hpp_calculator.dart';
-import '../models/hpp_history.dart';
 import '../models/hpp_template.dart';
 import '../services/storage_service.dart';
+import '../utils/app_utils.dart';
 import 'hpp_history_page.dart';
 import 'hpp_template_page.dart';
-
-// Custom formatter untuk thousand separator
-class ThousandsSeparatorInputFormatter extends TextInputFormatter {
-  final NumberFormat _numberFormat = NumberFormat('#,###', 'id_ID');
-
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.isEmpty) {
-      return newValue;
-    }
-
-    // Hanya proses jika ada perubahan
-    if (oldValue.text == newValue.text) {
-      return newValue;
-    }
-
-    // Hapus semua karakter non-digit
-    final String newValueText = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
-
-    if (newValueText.isEmpty) {
-      return const TextEditingValue(
-        text: '',
-        selection: TextSelection.collapsed(offset: 0),
-      );
-    }
-
-    // Parse ke angka
-    final int value = int.parse(newValueText);
-    final String formattedText = _numberFormat.format(value);
-
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: formattedText.length),
-    );
-  }
-}
+import '../utils/thousands_separator_input_formatter_utils.dart';
 
 class HppCalculatorPage extends StatefulWidget {
   final HppTemplate? template;
@@ -69,7 +32,6 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
   final _uuid = const Uuid();
   bool _isCalculated = false;
   SkalaUsaha _selectedSkalaUsaha = SkalaUsaha.rumahan;
-  final _currencyFormat = NumberFormat('#,###', 'id_ID');
 
   @override
   void initState() {
@@ -84,17 +46,17 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
     setState(() {
       // Format angka dengan pemisah ribuan
       _bahanBakuController.text =
-          _currencyFormat.format(template.calculator.bahanBaku);
+          AppUtils.currencyFormat.format(template.calculator.bahanBaku);
       _tenagaKerjaController.text =
-          _currencyFormat.format(template.calculator.tenagaKerja);
+          AppUtils.currencyFormat.format(template.calculator.tenagaKerja);
       _overheadPabrikController.text =
-          _currencyFormat.format(template.calculator.overheadPabrik);
+          AppUtils.currencyFormat.format(template.calculator.overheadPabrik);
       _biayaLainController.text =
-          _currencyFormat.format(template.calculator.biayaLain);
+          AppUtils.currencyFormat.format(template.calculator.biayaLain);
       _jumlahProduksiController.text =
-          template.calculator.jumlahProduksi.toString();
+          AppUtils.currencyFormat.format(template.calculator.jumlahProduksi);
       _profitMarginController.text =
-          template.calculator.profitMargin.toString();
+          AppUtils.currencyFormat.format(template.calculator.profitMargin);
       _selectedSkalaUsaha = template.calculator.skalaUsaha;
       _namaProdukController.text = template.namaProduk;
 
@@ -150,76 +112,76 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
     });
   }
 
-  Future<void> _simpanPerhitungan() async {
-    if (!_isCalculated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap hitung HPP terlebih dahulu')),
-      );
-      return;
-    }
+  // Future<void> _simpanPerhitungan() async {
+  //   if (!_isCalculated) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Harap hitung HPP terlebih dahulu')),
+  //     );
+  //     return;
+  //   }
 
-    // Tampilkan dialog untuk input nama produk
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Simpan Perhitungan'),
-        content: TextField(
-          controller: _namaProdukController,
-          decoration: const InputDecoration(
-            labelText: 'Nama Produk',
-            hintText: 'Masukkan nama produk',
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('BATAL'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (_namaProdukController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Nama produk tidak boleh kosong')),
-                );
-                return;
-              }
+  //   // Tampilkan dialog untuk input nama produk
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Simpan Perhitungan'),
+  //       content: TextField(
+  //         controller: _namaProdukController,
+  //         decoration: const InputDecoration(
+  //           labelText: 'Nama Produk',
+  //           hintText: 'Masukkan nama produk',
+  //         ),
+  //         autofocus: true,
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('BATAL'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () async {
+  //             if (_namaProdukController.text.trim().isEmpty) {
+  //               ScaffoldMessenger.of(context).showSnackBar(
+  //                 const SnackBar(
+  //                     content: Text('Nama produk tidak boleh kosong')),
+  //               );
+  //               return;
+  //             }
 
-              // Buat objek history
-              final history = HppHistory(
-                id: _uuid.v4(),
-                namaProduk: _namaProdukController.text.trim(),
-                calculator: HppCalculator(
-                  bahanBaku: _calculator.bahanBaku,
-                  tenagaKerja: _calculator.tenagaKerja,
-                  overheadPabrik: _calculator.overheadPabrik,
-                  biayaLain: _calculator.biayaLain,
-                  jumlahProduksi: _calculator.jumlahProduksi,
-                  skalaUsaha: _calculator.skalaUsaha,
-                  profitMargin: _calculator.profitMargin,
-                ),
-                timestamp: DateTime.now(),
-              );
+  //             // Buat objek history
+  //             final history = HppHistory(
+  //               id: _uuid.v4(),
+  //               namaProduk: _namaProdukController.text.trim(),
+  //               calculator: HppCalculator(
+  //                 bahanBaku: _calculator.bahanBaku,
+  //                 tenagaKerja: _calculator.tenagaKerja,
+  //                 overheadPabrik: _calculator.overheadPabrik,
+  //                 biayaLain: _calculator.biayaLain,
+  //                 jumlahProduksi: _calculator.jumlahProduksi,
+  //                 skalaUsaha: _calculator.skalaUsaha,
+  //                 profitMargin: _calculator.profitMargin,
+  //               ),
+  //               timestamp: DateTime.now(),
+  //             );
 
-              // Simpan ke storage
-              await _storageService.addHistory(history);
+  //             // Simpan ke storage
+  //             await _storageService.addHistory(history);
 
-              if (mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Perhitungan berhasil disimpan')),
-                );
-                _namaProdukController.clear();
-              }
-            },
-            child: const Text('SIMPAN'),
-          ),
-        ],
-      ),
-    );
-  }
+  //             if (mounted) {
+  //               Navigator.pop(context);
+  //               ScaffoldMessenger.of(context).showSnackBar(
+  //                 const SnackBar(
+  //                     content: Text('Perhitungan berhasil disimpan')),
+  //               );
+  //               _namaProdukController.clear();
+  //             }
+  //           },
+  //           child: const Text('SIMPAN'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _lihatRiwayat() {
     Navigator.push(
@@ -275,7 +237,15 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
               final template = HppTemplate(
                 id: _uuid.v4(),
                 namaProduk: _namaProdukController.text.trim(),
-                calculator: _calculator.copy(),
+                calculator: HppCalculator(
+                  bahanBaku: _calculator.bahanBaku,
+                  tenagaKerja: _calculator.tenagaKerja,
+                  overheadPabrik: _calculator.overheadPabrik,
+                  biayaLain: _calculator.biayaLain,
+                  jumlahProduksi: _calculator.jumlahProduksi,
+                  skalaUsaha: _calculator.skalaUsaha,
+                  profitMargin: _calculator.profitMargin,
+                ),
                 timestamp: DateTime.now(),
               );
 
@@ -294,17 +264,6 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
         ],
       ),
     );
-  }
-
-  String _formatCurrency(double value) {
-    // Menghilangkan 0 di belakang koma jika tidak diperlukan
-    if (value == value.toInt()) {
-      // Jika nilai adalah bilangan bulat (tidak ada desimal)
-      return 'Rp ${_currencyFormat.format(value.toInt())}';
-    } else {
-      // Jika nilai memiliki desimal
-      return 'Rp ${_currencyFormat.format(value)}';
-    }
   }
 
   void _showInfoDialog(Map<String, String> info) {
@@ -363,11 +322,11 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
             onPressed: _lihatTemplate,
             tooltip: 'Template',
           ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: _lihatRiwayat,
-            tooltip: 'Lihat Riwayat',
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.history),
+          //   onPressed: _lihatRiwayat,
+          //   tooltip: 'Lihat Riwayat',
+          // ),
         ],
       ),
       body: SingleChildScrollView(
@@ -480,6 +439,7 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
                         hint: 'Masukkan jumlah produksi',
                         controller: _jumlahProduksiController,
                         icon: Icons.production_quantity_limits,
+                        defaultTextLabel: '',
                         infoMap: HppCalculator.informasiJumlahProduksi,
                       ),
                       _buildInputFieldWithInfo(
@@ -527,12 +487,12 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
                       const SizedBox(height: 16),
                       _buildResultItem(
                         label: 'Total Biaya Produksi',
-                        value: _formatCurrency(_calculator.totalBiaya),
+                        value: AppUtils.formatCurrency(_calculator.totalBiaya),
                       ),
                       const Divider(),
                       _buildResultItem(
                         label: 'HPP per Unit',
-                        value: _formatCurrency(_calculator.hppPerUnit),
+                        value: AppUtils.formatCurrency(_calculator.hppPerUnit),
                         isHighlighted: true,
                       ),
                       if (_isCalculated) ...[
@@ -548,54 +508,66 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
                         _buildResultItem(
                           label: 'Profit Margin',
                           value:
-                              '${_calculator.profitMargin.toStringAsFixed(1)}%',
+                              '${AppUtils.formatNumber(_calculator.profitMargin)}%',
                         ),
                         _buildResultItem(
                           label: 'Profit per Unit',
-                          value: _formatCurrency(_calculator.profitPerUnit),
+                          value: AppUtils.formatCurrency(
+                              _calculator.profitPerUnit),
                         ),
                         _buildResultItem(
                           label: 'Harga Jual per Unit',
-                          value: _formatCurrency(_calculator.hargaJualPerUnit),
+                          value: AppUtils.formatCurrency(
+                              _calculator.hargaJualPerUnit),
                           isHighlighted: true,
                         ),
                         _buildResultItem(
                           label: 'Total Profit',
-                          value: _formatCurrency(_calculator.totalProfit),
+                          value:
+                              AppUtils.formatCurrency(_calculator.totalProfit),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 16.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _simpanPerhitungan,
-                                  icon: const Icon(Icons.save),
-                                  label: const Text('SIMPAN PERHITUNGAN'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12),
-                                  ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _simpanTemplate,
+                              icon: const Icon(Icons.bookmark_add),
+                              label: const Text('SIMPAN TEMPLATE'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _simpanTemplate,
-                                  icon: const Icon(Icons.bookmark_add),
-                                  label: const Text('SIMPAN TEMPLATE'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
+                          // Wrap(
+                          //   alignment: WrapAlignment.center,
+                          //   runAlignment: WrapAlignment.center,
+                          //   crossAxisAlignment: WrapCrossAlignment.center,
+                          //   spacing: 8,
+                          //   runSpacing: 8,
+                          //   children: [
+                          //     ElevatedButton.icon(
+                          //       onPressed: _simpanPerhitungan,
+                          //       icon: const Icon(Icons.save),
+                          //       label: const Text('SIMPAN PERHITUNGAN'),
+                          //       style: ElevatedButton.styleFrom(
+                          //         backgroundColor: Colors.green,
+                          //         foregroundColor: Colors.white,
+                          //         padding: const EdgeInsets.symmetric(
+                          //           vertical: 12,
+                          //           horizontal: 8,
+                          //         ),
+                          //       ),
+                          //     ),
+                          //     const SizedBox(width: 8),
+                          //     ,
+                          //   ],
+                          // ),
                         ),
                       ],
                     ],
@@ -696,7 +668,7 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
               if (isInteger || label == 'Profit Margin (%)')
                 FilteringTextInputFormatter.digitsOnly
               else
-                ThousandsSeparatorInputFormatter(),
+                ThousandsSeparatorInputFormatterUtils(),
             ],
             validator: (value) {
               if (value == null || value.isEmpty) {
