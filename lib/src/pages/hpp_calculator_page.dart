@@ -610,6 +610,32 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
                   ),
                 ),
               ),
+              SizedBox(
+                height: 24,
+              ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Dibuat dengan ❤️ oleh oemam.com",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    OutlinedButton.icon(
+                      icon: Icon(Icons.open_in_new),
+                      label: Text("Kunjungi oemam.com"),
+                      onPressed: () =>
+                          launchUrl(Uri.parse('https://oemam.com/')),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -691,31 +717,6 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
               }
               return null;
             },
-          ),
-          SizedBox(
-            height: 24,
-          ),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "Dibuat dengan ❤️ oleh oemam.com",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-                SizedBox(
-                  height: 4,
-                ),
-                OutlinedButton.icon(
-                  icon: Icon(Icons.open_in_new),
-                  label: Text("Kunjungi oemam.com"),
-                  onPressed: () => launchUrl(Uri.parse('https://oemam.com/')),
-                ),
-              ],
-            ),
           ),
         ],
       ),
