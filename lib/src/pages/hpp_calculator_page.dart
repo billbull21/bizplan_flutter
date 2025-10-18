@@ -618,7 +618,7 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "Dibuat dengan ❤️ oleh oemam.com",
+                      "Dibuat dengan ❤️ oleh oemam.netlify.app",
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -629,9 +629,9 @@ class _HppCalculatorPageState extends State<HppCalculatorPage> {
                     ),
                     OutlinedButton.icon(
                       icon: Icon(Icons.open_in_new),
-                      label: Text("Kunjungi oemam.com"),
+                      label: Text("Kunjungi oemam.netlify.app"),
                       onPressed: () =>
-                          launchUrl(Uri.parse('https://oemam.com/')),
+                          launchUrl(Uri.parse('https://oemam.netlify.app/')),
                     ),
                   ],
                 ),
