@@ -7,6 +7,7 @@ class KomponenBiaya extends Equatable {
   final String nama;
   final double nilai;
   final PeriodeKomponen periode;
+  final bool isTetap; // true = biaya tetap, false = variabel
   final String? keterangan;
 
   const KomponenBiaya({
@@ -14,6 +15,7 @@ class KomponenBiaya extends Equatable {
     required this.nama,
     required this.nilai,
     required this.periode,
+    this.isTetap = false,
     this.keterangan,
   });
 
@@ -51,6 +53,7 @@ class KomponenBiaya extends Equatable {
     String? nama,
     double? nilai,
     PeriodeKomponen? periode,
+    bool? isTetap,
     String? keterangan,
   }) {
     return KomponenBiaya(
@@ -58,10 +61,11 @@ class KomponenBiaya extends Equatable {
       nama: nama ?? this.nama,
       nilai: nilai ?? this.nilai,
       periode: periode ?? this.periode,
+      isTetap: isTetap ?? this.isTetap,
       keterangan: keterangan ?? this.keterangan,
     );
   }
 
   @override
-  List<Object?> get props => [id, nama, nilai, periode, keterangan];
+  List<Object?> get props => [id, nama, nilai, periode, isTetap, keterangan];
 }

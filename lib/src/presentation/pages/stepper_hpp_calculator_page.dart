@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/jenis_produksi.dart';
 import '../../domain/entities/skala_usaha.dart';
@@ -14,6 +15,7 @@ import '../widgets/komponen_biaya_input.dart';
 import '../widgets/hpp_result_card.dart';
 import '../widgets/bep_analysis_card.dart';
 import '../widgets/profit_analysis_card.dart';
+import 'hpp_share_page.dart';
 
 class StepperHppCalculatorPage extends StatefulWidget {
   const StepperHppCalculatorPage({super.key});
@@ -98,6 +100,22 @@ class _StepperHppCalculatorPageState extends State<StepperHppCalculatorPage> {
     }
   }
 
+  void _navigateToShare() {
+    final state = context.read<HppCalculatorCubit>().state;
+    if (state is HppCalculatorSuccess) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HppSharePage(
+            calculation: state.calculation,
+            bepAnalysis: state.bepAnalysis,
+            profitAnalysis: state.profitAnalysis,
+          ),
+        ),
+      );
+    }
+  }
+
   void _previousStep() {
     if (_currentStep > 0) {
       setState(() => _currentStep--);
@@ -117,6 +135,38 @@ class _StepperHppCalculatorPageState extends State<StepperHppCalculatorPage> {
       hariKerjaBulan: int.tryParse(_hariKerjaController.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 25,
       jumlahProduksiPerHari: int.tryParse(_jumlahProduksiController.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 1,
     );
+
+    // Auto-populate biaya tetap dari semua komponen yang ditandai sebagai tetap
+    // Konversi semua ke basis bulanan
+    final hariKerja = settingProduksi.hariKerjaBulan;
+    final biayaTetapTotal = _komponenBiaya
+        .where((k) => k.isTetap)
+        .fold(0.0, (sum, k) {
+          double nilaiBulanan = 0;
+          
+          switch (k.periode) {
+            case PeriodeKomponen.harian:
+              // Harian × hari kerja = bulanan
+              nilaiBulanan = k.nilai * hariKerja;
+              break;
+            case PeriodeKomponen.mingguan:
+              // Mingguan × 4 minggu = bulanan
+              nilaiBulanan = k.nilai * 4;
+              break;
+            case PeriodeKomponen.bulanan:
+              // Sudah bulanan
+              nilaiBulanan = k.nilai;
+              break;
+          }
+          
+          return sum + nilaiBulanan;
+        });
+    
+    if (biayaTetapTotal > 0 && _biayaTetapController.text.isEmpty) {
+      // Format dengan thousand separator
+      final formatter = NumberFormat('#,###', 'id_ID');
+      _biayaTetapController.text = formatter.format(biayaTetapTotal.toInt());
+    }
 
     context.read<HppCalculatorCubit>().calculateHpp(
           namaProduk: _namaProdukController.text.trim(),
@@ -496,10 +546,24 @@ class _StepperHppCalculatorPageState extends State<StepperHppCalculatorPage> {
           const SizedBox(height: 16),
           _buildInfoBox(
             '📌 Tips Komponen Biaya',
-            'HARIAN: Bahan baku yang cepat habis, upah harian\n'
-                'MINGGUAN: Pembelian berkala mingguan\n'
-                'BULANAN: Sewa, gaji tetap, listrik, air\n\n'
-                'Pastikan semua biaya tercatat untuk HPP yang akurat!',
+            'HARIAN: Bahan baku, upah harian pekerja\n'
+                'MINGGUAN: Belanja bahan yang seminggu sekali\n'
+                'BULANAN: Sewa tempat, gaji tetap, listrik, air\n\n'
+                '� Centang "Biaya Tetap" jika:\n'
+                '• Biaya tidak berubah walau produksi naik/turun\n'
+                '• Contoh: Sewa, gaji tetap, cicilan\n'
+                '• Biaya ini akan otomatis masuk ke BEP\n'
+                '• PERIODE APAPUN bisa ditandai tetap!\n'
+                '  (Gaji harian tetap Rp 80rb × 25 hari = Rp 2jt/bulan)\n\n'
+                '💡 Punya lebih dari 1 jenis produk?\n'
+                '2 cara pembagian biaya bersama:\n\n'
+                '1️⃣ UNTUK HITUNG HPP (proporsional):\n'
+                '• Produk A: 100 porsi/hari → dapat 2/3 dari sewa\n'
+                '• Produk B: 50 porsi/hari → dapat 1/3 dari sewa\n\n'
+                '2️⃣ UNTUK HITUNG BEP (dibagi rata):\n'
+                '• Sewa Rp 3 juta ÷ 2 produk = Rp 1.5 juta/produk\n'
+                '• Atau bisa proporsional juga (lebih akurat)\n\n'
+                '✅ Input biaya yang SUDAH DIBAGI sesuai produk Anda!',
           ),
         ],
       ),
@@ -576,7 +640,7 @@ class _StepperHppCalculatorPageState extends State<StepperHppCalculatorPage> {
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.attach_money),
                       prefixText: 'Rp ',
-                      helperText: 'Sewa, gaji tetap, dll yang tidak berubah',
+                      helperText: 'Otomatis dari komponen bulanan. Edit jika perlu.',
                     ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [ThousandsSeparatorInputFormatterUtils()],
@@ -692,14 +756,29 @@ class _StepperHppCalculatorPageState extends State<StepperHppCalculatorPage> {
               onPressed: () {
                 if (_currentStep == 1) {
                   _hitungHpp();
+                } else if (_currentStep == 3) {
+                  // Step terakhir - ke halaman share
+                  _navigateToShare();
                 } else if (_currentStep < 3) {
                   _nextStep();
                 }
               },
-              icon: Icon(_currentStep == 1 ? Icons.calculate : Icons.arrow_forward),
-              label: Text(_currentStep == 1 ? 'HITUNG HPP' : 'Lanjut'),
+              icon: Icon(
+                _currentStep == 1
+                    ? Icons.calculate
+                    : _currentStep == 3
+                        ? Icons.share
+                        : Icons.arrow_forward,
+              ),
+              label: Text(
+                _currentStep == 1
+                    ? 'HITUNG HPP'
+                    : _currentStep == 3
+                        ? 'SHARE RESEP'
+                        : 'Lanjut',
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: _currentStep == 3 ? Colors.green : Colors.blue,
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(48),
               ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'src/pages/hpp_calculator_page.dart';
 import 'src/presentation/pages/stepper_hpp_calculator_page.dart';
 import 'src/presentation/cubits/hpp_calculator_cubit.dart';
 
-void main() {
+void main() async {
+  await initializeDateFormatting('id_ID');
   runApp(const App());
 }
 

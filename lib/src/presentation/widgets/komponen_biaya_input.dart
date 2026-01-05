@@ -24,6 +24,7 @@ class _KomponenBiayaInputState extends State<KomponenBiayaInput> {
   late TextEditingController _namaController;
   late TextEditingController _nilaiController;
   late PeriodeKomponen _periode;
+  late bool _isTetap;
   final NumberFormat _numberFormat = NumberFormat('#,###', 'id_ID');
 
   @override
@@ -34,6 +35,7 @@ class _KomponenBiayaInputState extends State<KomponenBiayaInput> {
       text: widget.komponen.nilai > 0 ? _numberFormat.format(widget.komponen.nilai.toInt()) : '',
     );
     _periode = widget.komponen.periode;
+    _isTetap = widget.komponen.isTetap;
   }
 
   @override
@@ -50,6 +52,7 @@ class _KomponenBiayaInputState extends State<KomponenBiayaInput> {
         nama: _namaController.text,
         nilai: nilai,
         periode: _periode,
+        isTetap: _isTetap,
       ),
     );
   }
@@ -126,6 +129,32 @@ class _KomponenBiayaInputState extends State<KomponenBiayaInput> {
                     },
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Checkbox(
+                  value: _isTetap,
+                  onChanged: (value) {
+                    setState(() {
+                      _isTetap = value ?? false;
+                      _updateKomponen();
+                    });
+                  },
+                ),
+                Expanded(
+                  child: Text(
+                    _isTetap ? '💰 Biaya Tetap (untuk BEP)' : '📊 Biaya Variabel',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _isTetap ? Colors.orange.shade700 : Colors.grey.shade600,
+                      fontWeight: _isTetap ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (_isTetap)
+                  const Icon(Icons.info_outline, size: 16, color: Colors.orange),
               ],
             ),
           ],
