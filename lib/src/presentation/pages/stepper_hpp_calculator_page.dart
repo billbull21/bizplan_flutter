@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/jenis_produksi.dart';
@@ -15,7 +16,7 @@ import '../widgets/komponen_biaya_input.dart';
 import '../widgets/hpp_result_card.dart';
 import '../widgets/bep_analysis_card.dart';
 import '../widgets/profit_analysis_card.dart';
-import 'hpp_share_page.dart';
+import '../../router/app_router.dart';
 
 class StepperHppCalculatorPage extends StatefulWidget {
   const StepperHppCalculatorPage({super.key});
@@ -103,15 +104,13 @@ class _StepperHppCalculatorPageState extends State<StepperHppCalculatorPage> {
   void _navigateToShare() {
     final state = context.read<HppCalculatorCubit>().state;
     if (state is HppCalculatorSuccess) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HppSharePage(
-            calculation: state.calculation,
-            bepAnalysis: state.bepAnalysis,
-            profitAnalysis: state.profitAnalysis,
-          ),
-        ),
+      context.push(
+        AppRouter.share,
+        extra: {
+          'calculation': state.calculation,
+          'bepAnalysis': state.bepAnalysis,
+          'profitAnalysis': state.profitAnalysis,
+        },
       );
     }
   }
