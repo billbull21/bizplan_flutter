@@ -1,4 +1,4 @@
-name: bizplan
+name: obizplan
 description: Functional MVP for HPP app
 publish_to: "none"
 environment:

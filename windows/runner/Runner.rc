@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.oemam.mobile" "\0"
-            VALUE "FileDescription", "bizplan" "\0"
+            VALUE "FileDescription", "obizplan" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "bizplan" "\0"
+            VALUE "InternalName", "obizplan" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.oemam.mobile. All rights reserved." "\0"
-            VALUE "OriginalFilename", "bizplan.exe" "\0"
-            VALUE "ProductName", "bizplan" "\0"
+            VALUE "OriginalFilename", "obizplan.exe" "\0"
+            VALUE "ProductName", "obizplan" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

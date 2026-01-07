@@ -1,4 +1,4 @@
-package com.oemam.mobile.bizplan
+package com.oemam.mobile.obizplan
 
 import io.flutter.embedding.android.FlutterActivity
 
