@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
@@ -39,14 +40,23 @@ class _HppShareViewState extends State<HppShareView> {
         pixelRatio: 3.0,
       );
       if (image != null) {
-        final dir = await getTemporaryDirectory();
-        final path =
-            '${dir.path}/obizplan_${DateTime.now().millisecondsSinceEpoch}.png';
-        await File(path).writeAsBytes(image);
+        final XFile xFile;
+        if (kIsWeb) {
+          xFile = XFile.fromData(
+            image,
+            mimeType: 'image/png',
+            name: 'obizplan_${DateTime.now().millisecondsSinceEpoch}.png',
+          );
+        } else {
+          final dir = await getTemporaryDirectory();
+          final path =
+              '${dir.path}/obizplan_${DateTime.now().millisecondsSinceEpoch}.png';
+          await File(path).writeAsBytes(image);
+          xFile = XFile(path);
+        }
         await Share.shareXFiles(
-          [XFile(path)],
-          text:
-              'Hasil HPP - ${widget.calculation.namaProduk} | Obizplan',
+          [xFile],
+          text: 'Hasil HPP - ${widget.calculation.namaProduk} | Obizplan',
         );
       }
     } catch (e) {
