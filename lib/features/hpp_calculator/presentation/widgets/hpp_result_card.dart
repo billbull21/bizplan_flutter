@@ -261,11 +261,17 @@ class HppResultCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 2),
+          const Text(
+            'Sudah dikonversi ke nilai bulanan',
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          ),
           const SizedBox(height: 12),
           ...nonZeroEntries.map((entry) {
-            final totalBiaya = breakdown.values.fold(0.0, (a, b) => a + b);
+            final totalBiaya = calculation.totalBiayaBulanan;
             final persen =
                 totalBiaya > 0 ? (entry.value / totalBiaya) * 100 : 0.0;
+            final label = _periodeLabel(entry.key);
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Column(
@@ -274,7 +280,7 @@ class HppResultCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${entry.key[0].toUpperCase()}${entry.key.substring(1)}',
+                        label,
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary,
@@ -376,6 +382,21 @@ class HppResultCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _periodeLabel(String key) {
+    switch (key) {
+      case 'harian':
+        return 'Harian (×${calculation.settingProduksi.hariKerjaBulan} hari)';
+      case 'perBatch':
+        return 'Per Batch (×${calculation.settingProduksi.frekuensiBatchPerBulan ?? 1}x)';
+      case 'mingguan':
+        return 'Mingguan (×4.33)';
+      case 'bulanan':
+        return 'Bulanan';
+      default:
+        return '${key[0].toUpperCase()}${key.substring(1)}';
+    }
   }
 
   String _buildProduksiInfoText(HppCalculation calculation) {

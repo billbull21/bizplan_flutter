@@ -4,6 +4,7 @@ import '../../features/hpp_calculator/domain/entities/bep_analysis.dart';
 import '../../features/hpp_calculator/domain/entities/hpp_calculation.dart';
 import '../../features/hpp_calculator/domain/entities/profit_analysis.dart';
 import '../../features/hpp_calculator/presentation/viewmodels/hpp_calculator_viewmodel.dart';
+import '../../features/hpp_calculator/presentation/viewmodels/ai_insight_viewmodel.dart';
 import '../../features/hpp_calculator/presentation/views/hpp_calculator_view.dart';
 import '../../features/hpp_calculator/presentation/views/hpp_share_view.dart';
 
@@ -17,8 +18,11 @@ class AppRouter {
       GoRoute(
         path: calculator,
         name: 'calculator',
-        builder: (context, state) => BlocProvider(
-          create: (_) => HppCalculatorViewModel(),
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => HppCalculatorViewModel()),
+            BlocProvider(create: (_) => AiInsightViewModel()),
+          ],
           child: const HppCalculatorView(),
         ),
       ),

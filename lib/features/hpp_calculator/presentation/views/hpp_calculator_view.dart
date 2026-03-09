@@ -17,6 +17,8 @@ import '../widgets/hpp_result_card.dart';
 import '../widgets/bep_analysis_card.dart';
 import '../widgets/profit_analysis_card.dart';
 import '../widgets/step_indicator.dart';
+import '../widgets/ai_insight_card.dart';
+import '../viewmodels/ai_insight_viewmodel.dart';
 import '../../../../app/router/app_router.dart';
 
 class HppCalculatorView extends StatefulWidget {
@@ -47,6 +49,7 @@ class _HppCalculatorViewState extends State<HppCalculatorView> {
   JenisProduksi _jenisProduksi = JenisProduksi.harian;
   SkalaUsaha _skalaUsaha = SkalaUsaha.rumahan;
   final List<KomponenBiaya> _komponenBiaya = [];
+  bool _showAiInsight = false;
 
   @override
   void initState() {
@@ -181,6 +184,10 @@ class _HppCalculatorViewState extends State<HppCalculatorView> {
           komponenBiaya: _komponenBiaya,
           profitMargin: double.tryParse(_profitMarginController.text) ?? 30,
         );
+
+    // Reset AI insight agar user bisa trigger analisis baru
+    context.read<AiInsightViewModel>().reset();
+    setState(() => _showAiInsight = false);
 
     _nextStep();
   }
@@ -611,8 +618,21 @@ class _HppCalculatorViewState extends State<HppCalculatorView> {
           _buildSectionTitle('Hasil Perhitungan HPP', Icons.calculate_rounded),
           const SizedBox(height: 16),
           HppResultCard(calculation: state.calculation),
-          const SizedBox(height: 16),
-          _buildSuccessBanner(),
+          const SizedBox(height: 20),
+          // ── CTA 1: Analisis AI ──────────────────────────
+          _buildAiCta(state),
+          // ── CTA 2: Analisis Manual ──────────────────────
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _nextStep,
+            icon: const Icon(Icons.analytics_outlined, size: 18),
+            label: const Text('Analisis Manual (BEP & Profit)'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
+            ),
+          ),
           const SizedBox(height: 80),
         ],
       ),
@@ -954,31 +974,46 @@ class _HppCalculatorViewState extends State<HppCalculatorView> {
     );
   }
 
-  Widget _buildSuccessBanner() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.accentContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.check_circle_rounded,
-              color: AppColors.accent, size: 20),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'HPP berhasil dihitung! Lanjut ke Analisis untuk melihat BEP dan proyeksi profit.',
-              style: TextStyle(
-                fontSize: 13,
-                color: Color(0xFF065F46),
-                fontWeight: FontWeight.w500,
-                height: 1.4,
-              ),
+  Widget _buildAiCta(HppCalculatorSuccess state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            setState(() => _showAiInsight = true);
+            context.read<AiInsightViewModel>().analyze(
+                  calculation: state.calculation,
+                  bepAnalysis: state.bepAnalysis,
+                  profitAnalysis: state.profitAnalysis,
+                );
+          },
+          icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+          label: const Text('✨  Analisis dengan AI'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(52),
+            backgroundColor: const Color(0xFF6366F1),
+            foregroundColor: Colors.white,
+            textStyle: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
           ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Insight otomatis: skor kesehatan bisnis, masalah kritis & rekomendasi',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
+        if (_showAiInsight) ...[
+          const SizedBox(height: 16),
+          AiInsightCard(
+            calculation: state.calculation,
+            bepAnalysis: state.bepAnalysis,
+            profitAnalysis: state.profitAnalysis,
+          ),
         ],
-      ),
+      ],
     );
   }
 }

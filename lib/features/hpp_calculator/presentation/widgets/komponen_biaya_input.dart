@@ -40,8 +40,17 @@ class _KomponenBiayaInputState extends State<KomponenBiayaInput> {
           ? _formatter.format(widget.komponen.nilai.toInt())
           : '',
     );
-    _periode = widget.komponen.periode;
+    // Pastikan _periode valid untuk jenisProduksi saat ini
+    // (misal: komponen default 'harian' tapi user sudah pilih mode batch)
+    final validOptions = _periodeOptions;
+    _periode = validOptions.contains(widget.komponen.periode)
+        ? widget.komponen.periode
+        : validOptions.first;
     _isTetap = widget.komponen.isTetap;
+    // Jika periode dikoreksi, propagate ke parent setelah frame pertama
+    if (_periode != widget.komponen.periode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _updateKomponen());
+    }
   }
 
   @override

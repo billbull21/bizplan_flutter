@@ -1,0 +1,14 @@
+[build]
+  command = "git clone https://github.com/flutter/flutter.git --depth 1 --branch stable $HOME/flutter && export PATH=$PATH:$HOME/flutter/bin && flutter pub get && flutter build web --release"
+  publish = "build/web"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Untuk local development: jalankan dengan `netlify dev`
+# Netlify dev akan proxy request ke Flutter web-server di port 5000
+[dev]
+  command = "flutter run -d web-server --web-port 5000"
+  targetPort = 5000
+  port = 8888

@@ -132,6 +132,7 @@ class HppCalculation extends Equatable {
     return biayaVariabel < 0 ? 0 : biayaVariabel / totalProduksi;
   }
 
+  /// Breakdown biaya sudah dikonversi ke BULANAN per jenis periode
   Map<String, double> get breakdownBiayaByPeriode {
     final breakdown = <String, double>{
       'harian': 0.0,
@@ -141,7 +142,11 @@ class HppCalculation extends Equatable {
     };
     for (final komponen in komponenBiaya) {
       final key = komponen.periode.name;
-      breakdown[key] = (breakdown[key] ?? 0.0) + komponen.nilai;
+      final bulanan = komponen.hitungBiayaBulanan(
+        hariKerjaBulan: settingProduksi.hariKerjaBulan,
+        frekuensiBatchPerBulan: settingProduksi.frekuensiBatchPerBulan ?? 1,
+      );
+      breakdown[key] = (breakdown[key] ?? 0.0) + bulanan;
     }
     return breakdown;
   }
